@@ -3,6 +3,9 @@ using System.Data;
 using System.Data.SQLite;
 
 namespace SalesManager.Infrastructure {
+    /// <summary>
+    /// DBとのやりとりを行うためのクラス
+    /// </summary>
     public static class DbManager {
         private static readonly string ConnectionString = "Data Source=SalesManagement.db;Version=3;";
 
@@ -26,7 +29,7 @@ namespace SalesManager.Infrastructure {
         /// </summary>
         public static DataTable ExecuteQuery(string sql, SQLiteParameter[] parameters = null) {
             DataTable dt = new DataTable();
-            try{
+            try {
                 using (var conn = new SQLiteConnection(ConnectionString)) {
                     conn.Open();
                     using (var cmd = new SQLiteCommand(sql, conn)) {
@@ -34,17 +37,17 @@ namespace SalesManager.Infrastructure {
                             cmd.Parameters.AddRange(parameters);
                         }
                         //SQLの結果をDataTableに流し込む
-                        try{
+                        try {
                             using (var adapter = new SQLiteDataAdapter(cmd)) {
                                 adapter.Fill(dt);
                             }
-                        }catch (Exception ex){
-                            MessageManager.ShowError($"データベース登録中にエラーが発生しました。:\r\n {ex.Message}");
+                        } catch (Exception ex) {
+                            MessageManager.ShowError($"データベース登録中にエラーが発生しました。{Environment.NewLine}{ex.Message}");
                         }
                     }
                 }
-            }catch (Exception ex){
-                MessageManager.ShowError($"データベース接続に失敗しました。:\r\n {ex.Message}");
+            } catch (Exception ex) {
+                MessageManager.ShowError($"データベース接続に失敗しました。{Environment.NewLine}{ex.Message}");
             }
             return dt; //取得したデータの中身を返す
         }
@@ -61,21 +64,9 @@ namespace SalesManager.Infrastructure {
                         transaction.Commit();
                     } catch (Exception ex) {
                         transaction.Rollback();
-                        throw;
+                        MessageManager.ShowError($"データベース登録中にエラーが発生しました。{Environment.NewLine}{ex.Message}");
                     }
                 }
-            }
-        }
-
-        // 接続テスト用
-        public static void ConnectTest() {
-            try {
-                using (var conn = new SQLiteConnection(ConnectionString)) {
-                    conn.Open();
-                    System.Diagnostics.Debug.WriteLine("SQLite 接続成功！");
-                }
-            } catch (Exception ex) {
-                System.Diagnostics.Debug.WriteLine($"接続失敗:\r\n {ex.Message}");
             }
         }
     }

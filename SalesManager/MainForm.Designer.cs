@@ -31,7 +31,7 @@
             this.pageImport = new DevExpress.XtraBars.Navigation.NavigationPage();
             this.importView = new SalesManager.Views.ImportView();
             this.pageSales = new DevExpress.XtraBars.Navigation.NavigationPage();
-            this.salesView = new SalesManager.View.SalesView();
+            this.salesView = new SalesManager.Views.SalesView();
             this.pageProduct = new DevExpress.XtraBars.Navigation.NavigationPage();
             this.productView = new SalesManager.View.ProductView();
             ((System.ComponentModel.ISupportInitialize)(this.leftNav)).BeginInit();
@@ -53,8 +53,9 @@
             this.leftNav.Location = new System.Drawing.Point(0, 0);
             this.leftNav.Margin = new System.Windows.Forms.Padding(5, 2, 5, 2);
             this.leftNav.Name = "leftNav";
-            this.leftNav.Size = new System.Drawing.Size(221, 762);
-            this.leftNav.TabIndex = 0;
+            this.leftNav.Size = new System.Drawing.Size(236, 576);
+            this.leftNav.TabIndex = 20;
+            this.leftNav.TabStop = false;
             // 
             // btnImport
             // 
@@ -72,6 +73,13 @@
             // 
             // btnProduct
             // 
+            this.btnProduct.Appearance.Hovered.BackColor = System.Drawing.Color.Cyan;
+            this.btnProduct.Appearance.Hovered.Options.UseBackColor = true;
+            this.btnProduct.HeaderTemplate.AddRange(new DevExpress.XtraBars.Navigation.HeaderElementInfo[] {
+            new DevExpress.XtraBars.Navigation.HeaderElementInfo(DevExpress.XtraBars.Navigation.HeaderElementType.Text),
+            new DevExpress.XtraBars.Navigation.HeaderElementInfo(DevExpress.XtraBars.Navigation.HeaderElementType.Image),
+            new DevExpress.XtraBars.Navigation.HeaderElementInfo(DevExpress.XtraBars.Navigation.HeaderElementType.HeaderControl),
+            new DevExpress.XtraBars.Navigation.HeaderElementInfo(DevExpress.XtraBars.Navigation.HeaderElementType.ContextButtons)});
             this.btnProduct.Name = "btnProduct";
             this.btnProduct.Style = DevExpress.XtraBars.Navigation.ElementStyle.Item;
             this.btnProduct.Text = "商品管理";
@@ -84,7 +92,7 @@
             this.mainFrame.Controls.Add(this.pageSales);
             this.mainFrame.Controls.Add(this.pageProduct);
             this.mainFrame.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.mainFrame.Location = new System.Drawing.Point(221, 0);
+            this.mainFrame.Location = new System.Drawing.Point(236, 0);
             this.mainFrame.Margin = new System.Windows.Forms.Padding(5, 2, 5, 2);
             this.mainFrame.Name = "mainFrame";
             this.mainFrame.Pages.AddRange(new DevExpress.XtraBars.Navigation.NavigationPageBase[] {
@@ -92,8 +100,8 @@
             this.pageSales,
             this.pageProduct});
             this.mainFrame.SelectedPage = this.pageImport;
-            this.mainFrame.Size = new System.Drawing.Size(1183, 762);
-            this.mainFrame.TabIndex = 1;
+            this.mainFrame.Size = new System.Drawing.Size(996, 576);
+            this.mainFrame.TabIndex = 0;
             this.mainFrame.Text = "navigationFrame1";
             // 
             // pageImport
@@ -102,7 +110,8 @@
             this.pageImport.Controls.Add(this.importView);
             this.pageImport.Margin = new System.Windows.Forms.Padding(5, 2, 5, 2);
             this.pageImport.Name = "pageImport";
-            this.pageImport.Size = new System.Drawing.Size(1183, 762);
+            this.pageImport.Size = new System.Drawing.Size(996, 576);
+            this.pageImport.TabStop = false;
             // 
             // importView
             // 
@@ -110,8 +119,9 @@
             this.importView.Location = new System.Drawing.Point(0, 0);
             this.importView.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.importView.Name = "importView";
-            this.importView.Size = new System.Drawing.Size(1183, 762);
-            this.importView.TabIndex = 1;
+            this.importView.Size = new System.Drawing.Size(1245, 720);
+            this.importView.TabIndex = 0;
+            this.importView.TabStop = false;
             // 
             // pageSales
             // 
@@ -119,17 +129,18 @@
             this.pageSales.Controls.Add(this.salesView);
             this.pageSales.Margin = new System.Windows.Forms.Padding(5, 2, 5, 2);
             this.pageSales.Name = "pageSales";
-            this.pageSales.Size = new System.Drawing.Size(1183, 762);
+            this.pageSales.Size = new System.Drawing.Size(996, 576);
             // 
             // salesView
             // 
             this.salesView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.salesView.Location = new System.Drawing.Point(0, 0);
-            this.salesView.Margin = new System.Windows.Forms.Padding(8);
+            this.salesView.Margin = new System.Windows.Forms.Padding(4);
             this.salesView.Name = "salesView";
-            this.salesView.Padding = new System.Windows.Forms.Padding(4);
-            this.salesView.Size = new System.Drawing.Size(1183, 762);
-            this.salesView.TabIndex = 1;
+            this.salesView.Padding = new System.Windows.Forms.Padding(13, 12, 13, 12);
+            this.salesView.Size = new System.Drawing.Size(1245, 720);
+            this.salesView.TabIndex = 0;
+            this.salesView.TabStop = false;
             // 
             // pageProduct
             // 
@@ -137,7 +148,7 @@
             this.pageProduct.Controls.Add(this.productView);
             this.pageProduct.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.pageProduct.Name = "pageProduct";
-            this.pageProduct.Size = new System.Drawing.Size(1183, 762);
+            this.pageProduct.Size = new System.Drawing.Size(996, 576);
             // 
             // productView
             // 
@@ -146,19 +157,20 @@
             this.productView.Margin = new System.Windows.Forms.Padding(5);
             this.productView.Name = "productView";
             this.productView.Padding = new System.Windows.Forms.Padding(17, 15, 17, 15);
-            this.productView.Size = new System.Drawing.Size(1183, 762);
+            this.productView.Size = new System.Drawing.Size(1245, 720);
             this.productView.TabIndex = 1;
+            this.productView.TabStop = false;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(1404, 762);
+            this.ClientSize = new System.Drawing.Size(1232, 576);
             this.Controls.Add(this.mainFrame);
             this.Controls.Add(this.leftNav);
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.MinimumSize = new System.Drawing.Size(901, 498);
+            this.MinimumSize = new System.Drawing.Size(1000, 498);
             this.Name = "MainForm";
             this.Text = "販売管理アプリ";
             this.Load += new System.EventHandler(this.MainForm_Load);
@@ -184,7 +196,7 @@
         private DevExpress.XtraBars.Navigation.NavigationPage pageProduct;
         private Views.ImportView importView;
         private View.ProductView productView;
-        private View.SalesView salesView;
+        private Views.SalesView salesView;
     }
 }
 

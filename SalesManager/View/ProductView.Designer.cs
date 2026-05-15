@@ -36,11 +36,11 @@
             // btnCreatePurchaseOrder
             // 
             this.btnCreatePurchaseOrder.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnCreatePurchaseOrder.Location = new System.Drawing.Point(457, 12);
-            this.btnCreatePurchaseOrder.Margin = new System.Windows.Forms.Padding(2);
+            this.btnCreatePurchaseOrder.Location = new System.Drawing.Point(610, 15);
+            this.btnCreatePurchaseOrder.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.btnCreatePurchaseOrder.Name = "btnCreatePurchaseOrder";
-            this.btnCreatePurchaseOrder.Size = new System.Drawing.Size(173, 42);
-            this.btnCreatePurchaseOrder.TabIndex = 1;
+            this.btnCreatePurchaseOrder.Size = new System.Drawing.Size(231, 52);
+            this.btnCreatePurchaseOrder.TabIndex = 2;
             this.btnCreatePurchaseOrder.Text = "発注書を作成(&W)";
             this.btnCreatePurchaseOrder.UseVisualStyleBackColor = true;
             this.btnCreatePurchaseOrder.Click += new System.EventHandler(this.btnCreatePurchaseOrder_Click);
@@ -50,42 +50,46 @@
             this.panelControl1.BorderStyle = DevExpress.XtraEditors.Controls.BorderStyles.NoBorder;
             this.panelControl1.Controls.Add(this.btnCreatePurchaseOrder);
             this.panelControl1.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panelControl1.Location = new System.Drawing.Point(10, 412);
+            this.panelControl1.Location = new System.Drawing.Point(13, 516);
+            this.panelControl1.Margin = new System.Windows.Forms.Padding(4);
             this.panelControl1.Name = "panelControl1";
-            this.panelControl1.Padding = new System.Windows.Forms.Padding(10, 0, 0, 0);
-            this.panelControl1.Size = new System.Drawing.Size(630, 56);
-            this.panelControl1.TabIndex = 2;
+            this.panelControl1.Padding = new System.Windows.Forms.Padding(13, 0, 0, 0);
+            this.panelControl1.Size = new System.Drawing.Size(841, 70);
+            this.panelControl1.TabIndex = 1;
             // 
             // productGridControl
             // 
             this.productGridControl.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.productGridControl.EmbeddedNavigator.Margin = new System.Windows.Forms.Padding(2);
-            this.productGridControl.Location = new System.Drawing.Point(10, 10);
+            this.productGridControl.EmbeddedNavigator.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.productGridControl.Location = new System.Drawing.Point(13, 12);
             this.productGridControl.MainView = this.gridView1;
-            this.productGridControl.Margin = new System.Windows.Forms.Padding(2);
+            this.productGridControl.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.productGridControl.Name = "productGridControl";
-            this.productGridControl.Size = new System.Drawing.Size(630, 402);
-            this.productGridControl.TabIndex = 3;
+            this.productGridControl.Size = new System.Drawing.Size(841, 504);
+            this.productGridControl.TabIndex = 0;
             this.productGridControl.ViewCollection.AddRange(new DevExpress.XtraGrid.Views.Base.BaseView[] {
             this.gridView1});
             // 
             // gridView1
             // 
-            this.gridView1.DetailHeight = 280;
             this.gridView1.GridControl = this.productGridControl;
             this.gridView1.Name = "gridView1";
-            this.gridView1.OptionsEditForm.PopupEditFormWidth = 600;
+            this.gridView1.OptionsBehavior.Editable = false;
+            this.gridView1.OptionsCustomization.AllowFilter = false;
+            this.gridView1.OptionsNavigation.EnterMoveNextColumn = true;
+            this.gridView1.OptionsNavigation.UseTabKey = false;
+            this.gridView1.OptionsView.ShowGroupPanel = false;
             // 
             // ProductView
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.productGridControl);
             this.Controls.Add(this.panelControl1);
-            this.Margin = new System.Windows.Forms.Padding(2);
+            this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Name = "ProductView";
-            this.Padding = new System.Windows.Forms.Padding(10);
-            this.Size = new System.Drawing.Size(650, 478);
+            this.Padding = new System.Windows.Forms.Padding(13, 12, 13, 12);
+            this.Size = new System.Drawing.Size(867, 598);
             this.Load += new System.EventHandler(this.ProductView_Load);
             ((System.ComponentModel.ISupportInitialize)(this.panelControl1)).EndInit();
             this.panelControl1.ResumeLayout(false);

@@ -6,11 +6,19 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using System.IO;
+using SalesManager.Service;
 
 namespace SalesManager.View {
+    /// <summary>
+    /// 商品管理画面を表示するためのクラス
+    /// </summary>
     public partial class ProductView : UserControl {
 
         private readonly ProductService _productService = new ProductService();
+
+        public void FocusDefault() {
+            productGridControl.Focus();//初期フォーカス位置
+        }
 
         public ProductView() {
             InitializeComponent();
@@ -21,9 +29,14 @@ namespace SalesManager.View {
         }
 
         public void DisplayProductList() {
-            productGridControl.DataSource = _productService.GetProduct();
+            var products = _productService.GetProduct();
+            productGridControl.DataSource = products;
+            if (products.Count <= 0) {
+                btnCreatePurchaseOrder.Enabled = products.Count > 0;
+            }
             SetupGridFormatting();
         }
+
         /// <summary>
         /// ビューの見た目を調整
         /// </summary>
@@ -31,14 +44,16 @@ namespace SalesManager.View {
             var view = productGridControl.MainView as DevExpress.XtraGrid.Views.Grid.GridView;
             if (view == null) return;
 
+            view.FormatRules.Clear();
+
             GridFormatRule formatRule = new GridFormatRule();
             FormatConditionRuleValue ruleValue = new FormatConditionRuleValue();
 
-            formatRule.Column = view.Columns["在庫数"];
+            formatRule.Column = view.Columns["StockQuantity"];
             formatRule.ApplyToRow = true; //対象行全体の色を変更
 
             ruleValue.Condition = FormatCondition.LessOrEqual;
-            ruleValue.Value1 = ProductService.LowStockThreshold;
+            ruleValue.Value1 = OrderReportService.LowStockThreshold;
 
             ruleValue.Appearance.BackColor = Color.MistyRose;
             ruleValue.Appearance.ForeColor = Color.Red;
@@ -49,23 +64,23 @@ namespace SalesManager.View {
             view.FormatRules.Add(formatRule);
         }
 
-        private void ExportFile(string folderPath) {
-            try {
-                string templatePath = Path.Combine(Application.StartupPath, "Templates", "OrderTemplate.xlsx");
-
-                _productService.RequestOrderReport(templatePath, folderPath);
-
-                MessageBox.Show("発注書の作成が完了しました。", "完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            } catch (Exception ex) {
-                MessageBox.Show("出力に失敗しました: " + ex.Message, "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //tabキー ループ処理
+        protected override bool ProcessDialogKey(Keys keyData) {
+            if (FocusManager.HandleTabLoop(this.ActiveControl, productGridControl, btnCreatePurchaseOrder, keyData)) {
+                return true;
             }
+            return base.ProcessDialogKey(keyData);
         }
 
+        // --- イベント ---
+
+        //発注書作成ボタン
         private void btnCreatePurchaseOrder_Click(object sender, EventArgs e) {
-            string selectedPath = FileManager.ShowFolderDialog(this, "発注書の出力先フォルダを選択してください");
+            string selectedPath = FileManager.ShowFolderDialog("発注書の保存先を選択してください", "フォルダ");
 
             if (selectedPath != null) {
-                ExportFile(selectedPath);
+                string templatePath = Path.Combine(Application.StartupPath, "Templates", "OrderTemplate.xlsx");
+                _productService.ExportFile(selectedPath, templatePath);
             }
         }
     }

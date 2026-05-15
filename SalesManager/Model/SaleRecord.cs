@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.ComponentModel;
 
 namespace SalesManager.Model {
-    internal class SaleRecord {
+    /// <summary>
+    /// SQLiteの売上データを扱いやすくするためのクラス
+    /// </summary>
+    public class SaleRecord {
         // --- 画面表示用の項目 ---
 
         [DisplayName("売上日")]
@@ -17,9 +16,6 @@ namespace SalesManager.Model {
 
         [DisplayName("商品名")]
         public string ProductName { get; set; }
-
-        [DisplayName("単価")]
-        public decimal UnitPrice { get; set; }
 
         [DisplayName("数量")]
         public int Quantity { get; set; }
@@ -39,5 +35,9 @@ namespace SalesManager.Model {
 
         [Browsable(false)]
         public int StoreId { get; set; }
+
+        [Browsable(false)]
+        public decimal UnitPrice { get; set; }
+
     }
 }

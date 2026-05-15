@@ -1,10 +1,14 @@
 ﻿using System.Windows.Forms;
+using System.IO;
 
 namespace SalesManager.Infrastructure {
+    /// <summary>
+    /// ファイル選択のためのクラス
+    /// </summary>
     public static class FileManager {
 
         /// <summary>
-        /// フォルダ選択ダイアログを表示し、選択されたパスを返す
+        /// フォルダ選択ダイアログを表示し、ファイルを選択する
         /// </summary>
         public static string[] ShowOpenFilesDialog(string title, string filter) {
             using (OpenFileDialog dialog = new OpenFileDialog()) {
@@ -20,14 +24,18 @@ namespace SalesManager.Infrastructure {
         }
 
         /// <summary>
-        /// フォルダ選択ダイアログを表示し、選択されたパスを返す
-        /// </summary>
-        public static string ShowFolderDialog(IWin32Window owner, string description) {
-            using (FolderBrowserDialog dialog = new FolderBrowserDialog()) {
-                dialog.Description = description;
+        /// ファイル選択ダイアログを表示し、フォルダを選択する
+        public static string ShowFolderDialog(string title, string filter) {
+            using (OpenFileDialog dialog = new OpenFileDialog()) {
+                dialog.Title = title;
+                dialog.Filter = "Folder|.";
+                dialog.CheckFileExists = false;
+                dialog.CheckPathExists = true;
 
-                if (dialog.ShowDialog(owner) == DialogResult.OK) {
-                    return dialog.SelectedPath;
+                dialog.FileName = "フォルダーを選択してください";
+
+                if (dialog.ShowDialog() == DialogResult.OK) {
+                    return Path.GetDirectoryName(dialog.FileName); // 選択された全パスを返す
                 }
             }
             return null;
