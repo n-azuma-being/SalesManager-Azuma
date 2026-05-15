@@ -1,22 +1,20 @@
-﻿using DevExpress.XtraBars.Navigation;
-using SalesManager.Infrastructure;
+﻿using SalesManager.Infrastructure;
 using SalesManager.Services;
-using SalesManager.View;
 using SalesManager.Views;
 using System;
 using System.Windows.Forms;
 
 namespace SalesManager {
+    /// <summary>
+    /// メイン画面を表示するためのクラス
+    /// </summary>
     public partial class MainForm : System.Windows.Forms.Form {
 
         private readonly ImportService _importService = new ImportService();
-        private readonly SalesService _salesService = new SalesService();
 
 
         // 各画面のインスタンスを保持
         private ImportView _importView;
-        private SalesView _salesView;
-        private ProductView _productView;
 
         public MainForm() {
             InitializeComponent();
@@ -36,7 +34,7 @@ namespace SalesManager {
                 ShowImportView();
 
             } catch (Exception ex) {
-                MessageManager.ShowError($"起動エラー:\r\n {ex.Message}");
+                MessageManager.ShowError($"起動エラー{Environment.NewLine} {ex.Message}");
             }
         }
 
@@ -45,29 +43,29 @@ namespace SalesManager {
                 try {
                     ShowImportView();
                 } catch (Exception ex) {
-                    MessageManager.ShowError($"エラーが発生したため処理を終了しました。:{ex.Message}");
+                    MessageManager.ShowError($"エラーが発生したため処理を終了しました。{Environment.NewLine}{ex.Message}");
                 }
             } else if (e.Alt && e.KeyCode == Keys.S) {
                 try {
                     ShowSalesView();
                 } catch (Exception ex) {
-                    MessageManager.ShowError($"エラーが発生したため処理を終了しました。:{ex.Message}");
+                    MessageManager.ShowError($"エラーが発生したため処理を終了しました。{Environment.NewLine}{ex.Message}");
                 }
             } else if (e.Alt && e.KeyCode == Keys.P) {
                 try {
                     ShowProductView();
                 } catch (Exception ex) {
-                    MessageManager.ShowError($"エラーが発生したため処理を終了しました。:{ex.Message}");
+                    MessageManager.ShowError($"エラーが発生したため処理を終了しました。{Environment.NewLine}{ex.Message}");
                 }
             }
         }
 
         private void InitializeViews() {
             // --- 取込画面 ---
-            _importView = new ImportView();
-            _importView.Dock = DockStyle.Fill;
-            mainFrame.Controls.Add(_importView);
             leftNav.SelectedElement = btnImport;
+            this.importView.Dock = DockStyle.Fill;
+            this.salesView.Dock = DockStyle.Fill;
+            this.productView.Dock = DockStyle.Fill;
         }
 
         // --- 画面切り替えメソッド群 ---
@@ -75,46 +73,51 @@ namespace SalesManager {
         public void ShowImportView() {
             mainFrame.SelectedPage = pageImport;
             this.Text = "販売管理システム - データ取込";
+            this.BeginInvoke(new MethodInvoker(() => {
+                importView.FocusDefault();
+            }));
         }
 
         public void ShowSalesView() {
             mainFrame.SelectedPage = pageSales;
             this.Text = "販売管理システム - 売上集計";
+            this.BeginInvoke(new MethodInvoker(() => {
+                salesView.FocusDefault();
+            }));
         }
 
         public void ShowProductView() {
             mainFrame.SelectedPage = pageProduct;
             this.Text = "販売管理システム - 商品管理";
+            productView.FocusDefault();
         }
 
         // --- メニュー（AccordionControl）からのイベント ---
 
+        //データ取込画面表示ボタン
         private void btnImport_Click(object sender, EventArgs e) {
-            try{
+            try {
                 ShowImportView();
             } catch (Exception ex) {
-                MessageManager.ShowError($"エラーが発生したため処理を終了しました。:{ex.Message}");
+                MessageManager.ShowError($"エラーが発生したため処理を終了しました。{Environment.NewLine}{ex.Message}");
             }
         }
-
+        //売上集計画面表示ボタン
         private void btnSalesSummary_Click(object sender, EventArgs e) {
             try {
                 ShowSalesView();
             } catch (Exception ex) {
-                MessageManager.ShowError($"エラーが発生したため処理を終了しました。:{ex.Message}");
+                MessageManager.ShowError($"エラーが発生したため処理を終了しました。{Environment.NewLine}{ex.Message}");
             }
         }
 
+        //商品管理画面表示ボタン
         private void btnProduct_Click(object sender, EventArgs e) {
             try {
                 ShowProductView();
             } catch (Exception ex) {
-                MessageManager.ShowError($"エラーが発生したため処理を終了しました。:{ex.Message}");
+                MessageManager.ShowError($"エラーが発生したため処理を終了しました。。{Environment.NewLine}{ex.Message}");
             }
-        }
-
-        private void salesView_Load(object sender, EventArgs e) {
-
         }
     }
 }

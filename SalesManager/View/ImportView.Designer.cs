@@ -27,9 +27,9 @@
             this.btnBrowse = new System.Windows.Forms.Button();
             this.btnExecuteImport = new System.Windows.Forms.Button();
             this.panelControl1 = new DevExpress.XtraEditors.PanelControl();
-            this.lblFileName1 = new System.Windows.Forms.Label();
-            this.lblFileName2 = new System.Windows.Forms.Label();
             this.lblFileName3 = new System.Windows.Forms.Label();
+            this.lblFileName2 = new System.Windows.Forms.Label();
+            this.lblFileName1 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.panelControl1)).BeginInit();
             this.panelControl1.SuspendLayout();
             this.SuspendLayout();
@@ -37,12 +37,13 @@
             // txtFilePath
             // 
             this.txtFilePath.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.txtFilePath.Location = new System.Drawing.Point(0, 4);
+            this.txtFilePath.Location = new System.Drawing.Point(3, 4);
             this.txtFilePath.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtFilePath.Name = "txtFilePath";
             this.txtFilePath.Size = new System.Drawing.Size(295, 26);
-            this.txtFilePath.TabIndex = 0;
+            this.txtFilePath.TabIndex = 2;
             this.txtFilePath.TextChanged += new System.EventHandler(this.txtFilePath_TextChanged);
+            this.txtFilePath.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtFilePath_KeyDown);
             // 
             // btnBrowse
             // 
@@ -51,7 +52,7 @@
             this.btnBrowse.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.btnBrowse.Name = "btnBrowse";
             this.btnBrowse.Size = new System.Drawing.Size(75, 28);
-            this.btnBrowse.TabIndex = 1;
+            this.btnBrowse.TabIndex = 0;
             this.btnBrowse.Text = "参照(&B)";
             this.btnBrowse.UseVisualStyleBackColor = true;
             this.btnBrowse.Click += new System.EventHandler(this.btnBrowse_Click);
@@ -63,7 +64,8 @@
             this.btnExecuteImport.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.btnExecuteImport.Name = "btnExecuteImport";
             this.btnExecuteImport.Size = new System.Drawing.Size(171, 60);
-            this.btnExecuteImport.TabIndex = 2;
+            this.btnExecuteImport.TabIndex = 1;
+            this.btnExecuteImport.TabStop = false;
             this.btnExecuteImport.Text = "集計開始(&R)";
             this.btnExecuteImport.UseVisualStyleBackColor = true;
             this.btnExecuteImport.Click += new System.EventHandler(this.btnExecuteImport_Click);
@@ -84,15 +86,16 @@
             this.panelControl1.Size = new System.Drawing.Size(393, 232);
             this.panelControl1.TabIndex = 3;
             // 
-            // lblFileName1
+            // lblFileName3
             // 
-            this.lblFileName1.AutoSize = true;
-            this.lblFileName1.Location = new System.Drawing.Point(27, 57);
-            this.lblFileName1.Name = "lblFileName1";
-            this.lblFileName1.Size = new System.Drawing.Size(44, 18);
-            this.lblFileName1.TabIndex = 3;
-            this.lblFileName1.Text = "label1";
-            this.lblFileName1.Visible = false;
+            this.lblFileName3.AutoSize = true;
+            this.lblFileName3.Location = new System.Drawing.Point(27, 93);
+            this.lblFileName3.Name = "lblFileName3";
+            this.lblFileName3.Size = new System.Drawing.Size(44, 18);
+            this.lblFileName3.TabIndex = 12;
+            this.lblFileName3.Text = "label3";
+            this.lblFileName3.UseMnemonic = false;
+            this.lblFileName3.Visible = false;
             // 
             // lblFileName2
             // 
@@ -100,19 +103,21 @@
             this.lblFileName2.Location = new System.Drawing.Point(27, 75);
             this.lblFileName2.Name = "lblFileName2";
             this.lblFileName2.Size = new System.Drawing.Size(44, 18);
-            this.lblFileName2.TabIndex = 4;
+            this.lblFileName2.TabIndex = 11;
             this.lblFileName2.Text = "label2";
+            this.lblFileName2.UseMnemonic = false;
             this.lblFileName2.Visible = false;
             // 
-            // lblFileName3
+            // lblFileName1
             // 
-            this.lblFileName3.AutoSize = true;
-            this.lblFileName3.Location = new System.Drawing.Point(27, 93);
-            this.lblFileName3.Name = "lblFileName3";
-            this.lblFileName3.Size = new System.Drawing.Size(44, 18);
-            this.lblFileName3.TabIndex = 5;
-            this.lblFileName3.Text = "label3";
-            this.lblFileName3.Visible = false;
+            this.lblFileName1.AutoSize = true;
+            this.lblFileName1.Location = new System.Drawing.Point(27, 57);
+            this.lblFileName1.Name = "lblFileName1";
+            this.lblFileName1.Size = new System.Drawing.Size(44, 18);
+            this.lblFileName1.TabIndex = 10;
+            this.lblFileName1.Text = "label1";
+            this.lblFileName1.UseMnemonic = false;
+            this.lblFileName1.Visible = false;
             // 
             // ImportView
             // 

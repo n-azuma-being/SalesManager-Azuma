@@ -5,40 +5,45 @@ using System.Windows.Forms;
 using System.IO;
 
 namespace SalesManager {
+    /// <summary>
+    /// 週次報告書作成画面を表示するためのクラス
+    /// </summary>
     public partial class WeeklyReportForm : Form {
 
         private readonly WeeklyReportService _weeklyReportService = new WeeklyReportService();
+        private DateTime _initialEndDate;
 
-        public WeeklyReportForm() {
+        public WeeklyReportForm(DateTime endDate) {
             InitializeComponent();
+
+            dtpSummaryStartDate.Format = DateTimePickerFormat.Custom;
+            dtpSummaryStartDate.CustomFormat = "yyyy/MM/dd";
+
+            dtpSummaryEndDate.Format = DateTimePickerFormat.Custom;
+            dtpSummaryEndDate.CustomFormat = "yyyy/MM/dd";
+
+            _initialEndDate = endDate;
+
+            this.KeyPreview = true;
+            this.KeyDown += WeeklyReportForm_KeyDown;
         }
 
-        private void ExportFile(string folderPath, DateTime start, DateTime end) {
-            try {
-                string templatePath = Path.Combine(Application.StartupPath, "Templates", "WeeklyReportTemplate.xlsx");
-
-                _weeklyReportService.RequestWeeklyReport(templatePath, folderPath, start, end);
-
-                MessageBox.Show("週次報告書の作成が完了しました。", "完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            } catch (Exception ex) {
-                MessageBox.Show("エラーが発生したため処理を終了しました。: " + ex.Message, "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+        private void WeeklyReportForm_Load(object sender, EventArgs e) {
+            dtpSummaryEndDate.Value = _initialEndDate;
+            ApplyWeeklyRange(_initialEndDate);
         }
 
         private bool _isUpdating = false;
 
         private void ApplyWeeklyRange(DateTime selectedDate) {
-            if (_isUpdating) return; //更新中なら何もしない
+            if (_isUpdating) return;
             _isUpdating = true;
 
             try {
-                //月曜日を計算
-                int diff = (7 + (selectedDate.DayOfWeek - DayOfWeek.Monday)) % 7;
-                DateTime monday = selectedDate.AddDays(-1 * diff).Date;
-                DateTime sunday = monday.AddDays(6).Date;
+                var range = _weeklyReportService.GetWeeklyRange(selectedDate);
 
-                dtpSummaryStartDate.Value = monday;
-                dtpSummaryEndDate.Value = sunday;
+                dtpSummaryStartDate.Value = range.Start;
+                dtpSummaryEndDate.Value = range.End;
             } finally {
                 _isUpdating = false;
             }
@@ -46,51 +51,52 @@ namespace SalesManager {
 
         // ---- イベント ----
 
-        private void btnCreateReport_Click(object sender, EventArgs e) {
-            try {
-                DateTime startDate = dtpSummaryStartDate.Value;
-                DateTime endDate = dtpSummaryEndDate.Value;
-
-                //期間逆転チェック
-                if (startDate > endDate) {
-                    MessageBox.Show("開始日は終了日より前の日付を選択してください。");
-                    return;
-                }
-
-                string selectedPath = FileManager.ShowFolderDialog(this, "週次報告書の保存先を選択してください");
-                if (string.IsNullOrEmpty(selectedPath)) return;
-
-                string templatePath = Path.Combine(Application.StartupPath, "Templates", "WeeklyReportTemplate.xlsx");
-
-                _weeklyReportService.RequestWeeklyReport(templatePath, selectedPath, startDate, endDate);
-
-                MessageBox.Show("週次報告書を作成しました。");
-
-            } catch (Exception ex) {
-                MessageBox.Show($"エラーが発生したため処理を終了しました :\r\n {ex.Message}");
-            }
-        }
-
+        //週次報告書作成ボタン
         private void btnExportWeeklyReport_Click(object sender, EventArgs e) {
-            string selectedPath = FileManager.ShowFolderDialog(this, "週次報告書の出力先フォルダを選択してください");
+            string selectedPath = FileManager.ShowFolderDialog("週次報告書の出力先フォルダを選択してください", "フォルダ");
 
             //キャンセルされなかった場合のみ続行
             if (selectedPath != null) {
+                string templatePath = Path.Combine(Application.StartupPath, "Templates", "WeeklyReportTemplate.xlsx");
+
                 DateTime start = dtpSummaryStartDate.Value;
                 DateTime end = dtpSummaryEndDate.Value;
 
-                ExportFile(selectedPath, start, end);
+                _weeklyReportService.ExportFile(selectedPath, templatePath, start, end);
             }
         }
 
         //集計期間開始日
         private void dtpSummaryStartDate_ValueChanged(object sender, EventArgs e) {
-            ApplyWeeklyRange(dtpSummaryStartDate.Value);
+            if (_isUpdating) return;
+
+            DateTime inputDate = dtpSummaryStartDate.Value;
+
+            ApplyWeeklyRange(inputDate);
+
+            if (inputDate.Date != dtpSummaryStartDate.Value.Date) {
+                MessageManager.ShowInfo("集計期間を月～日に修正しました");
+            }
+        }
+
+        //集計単位が週次のとき、Downキーで集計期間を次の週にする
+        private void dtpSummaryStartDate_KeyDown(object sender, KeyEventArgs e) {
+            dtpSummaryStartDate.Value = dtpSummaryStartDate.Value.AddDays(8);
+            e.SuppressKeyPress = true;
         }
 
         //集計期間終了日
         private void dtpSummaryEndDate_ValueChanged(object sender, EventArgs e) {
+            if (_isUpdating) return;
+
             ApplyWeeklyRange(dtpSummaryEndDate.Value);
+        }
+
+        //escキーで画面を閉じる
+        private void WeeklyReportForm_KeyDown(object sender, KeyEventArgs e) {
+            if (e.KeyCode == Keys.Escape) {
+                this.Close();
+            }
         }
     }
 }

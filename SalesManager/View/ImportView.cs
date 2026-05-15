@@ -1,72 +1,30 @@
 ﻿using SalesManager.Infrastructure;
 using SalesManager.Services;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Windows.Forms;
-using static DevExpress.Data.Filtering.Helpers.SubExprHelper;
 
 namespace SalesManager.Views {
-    public partial class ImportView : DevExpress.XtraEditors.XtraUserControl {
+    /// <summary>
+    /// データ取込画面を表示するためのクラス
+    /// </summary>
+    public partial class ImportView : System.Windows.Forms.UserControl {
 
         private readonly ImportService _importService = new ImportService();
 
+        public void FocusDefault() {
+            btnBrowse.Focus();//初期フォーカス位置
+        }
+
         public ImportView() {
             InitializeComponent();
-
+            txtFilePath.KeyPress += (s, e) => e.Handled = true;
+            this.TabStop = false;
+            panelControl1.TabStop = false;
             btnExecuteImport.Enabled = false;
         }
 
-        /// <summary>
-        /// ファイル出力
-        /// </summary>
-        public void ExecuteImport() {
-            // テキストボックスからパスを分割して取得
-            string[] paths = txtFilePath.Text.Split(';');
-
-
-            //存在チェック
-            string productPath = paths.FirstOrDefault(p => Path.GetFileName(p).ToLower().Contains("products"));
-            string inventoryPath = paths.FirstOrDefault(p => Path.GetFileName(p).ToLower().Contains("inventory"));
-            string salesPath = paths.FirstOrDefault(p => Path.GetFileName(p).ToLower().Contains("sales"));
-
-            List<string> missingFiles = new List<string>();
-
-            if (string.IsNullOrEmpty(productPath)) missingFiles.Add("・商品マスター (products.csv)");
-            if (string.IsNullOrEmpty(inventoryPath)) missingFiles.Add("・在庫データ (inventory.csv)");
-            if (string.IsNullOrEmpty(salesPath)) missingFiles.Add("・売上データ (sales_YYYYMMDD.csv)");
-
-            if (missingFiles.Count > 0) {
-                string message = "以下の必要なファイルが選択されていません：\n\n" + string.Join("\n", missingFiles);
-                MessageManager.ShowInfo(message);
-                return; // 処理を中断
-            }
-
-            try {
-                this.Cursor = Cursors.WaitCursor;
-                btnExecuteImport.Enabled = false;
-
-                // DB整合性のために順番を固定して実行
-                string storePath = paths.FirstOrDefault(p => Path.GetFileName(p).ToLower().Contains("store"));
-                if (storePath != null) _importService.ImportStores(storePath);
-
-                // 商品 -> 在庫 -> 売上 の順
-                _importService.ImportProducts(productPath);
-                _importService.ImportInventory(inventoryPath);
-                _importService.ImportSales(salesPath);
-
-                MessageManager.ShowInfo("売上集計が完了しました。\t\t\t");
-                txtFilePath.Clear();
-            } catch (Exception ex) {
-                MessageManager.ShowError($"データベース登録中にエラーが発生しました。：\n{ex.Message}");
-            } finally {
-                this.Cursor = Cursors.Default;
-                btnExecuteImport.Enabled = true;
-            }
-        }
-
-        public void SelectFile() {
+       private void SelectFile() {
             string[] files = FileManager.ShowOpenFilesDialog(
                 "取込対象のCSVファイルをすべて選択してください",
                 "CSVファイル (*.csv)|*.csv"
@@ -75,20 +33,52 @@ namespace SalesManager.Views {
             //キャンセル
             if (files == null || files.Length == 0) return;
 
+            if (files.Length > 3) {
+                MessageManager.ShowInfo("選択できるファイルは3件までです。");
+                return;
+            }
+
+            //一旦クリアにする
+            lblFileName_Hide();
+
             txtFilePath.Text = string.Join(";", files);
 
+            btnExecuteImport.Enabled = true;
+            btnExecuteImport.TabStop = true;
+
+            lblFileName_Visible(files);
+        }
+
+        public void lblFileName_Visible(string[] files){
             for (int i = 0; i < files.Length; i++) {
 
                 Control[] controls = this.Controls.Find("lblFileName" + (i + 1), true);
 
                 if (controls.Length > 0) {
-
                     controls[0].Visible = true;
-
-                    // ファイル名のみ表示
-                    controls[0].Text = Path.GetFileName(files[i]);
+                    controls[0].Text = Path.GetFileName(files[i]);// ファイル名のみ表示
                 }
             }
+        }
+
+        public void lblFileName_Hide() {
+            for (int i = 0; i < 3; i++) {
+
+                Control[] controls = this.Controls.Find("lblFileName" + (i + 1), true);
+
+                if (controls.Length > 0) {
+                    controls[0].Text = "";
+                    controls[0].Visible = false;
+                }
+            }
+        }
+
+        //tabキー ループ処理
+        protected override bool ProcessDialogKey(Keys keyData) {
+            if (FocusManager.HandleTabLoop(this.ActiveControl, btnBrowse, txtFilePath, keyData)) {
+                return true;
+            }
+            return base.ProcessDialogKey(keyData);
         }
 
         // --- イベント ---
@@ -103,9 +93,35 @@ namespace SalesManager.Views {
             btnExecuteImport.Enabled = !string.IsNullOrWhiteSpace(txtFilePath.Text);
         }
 
+        //テキストボックス（Enterキー）
+        private void txtFilePath_KeyDown(object sender, KeyEventArgs e) {
+            if (e.KeyCode == Keys.Enter) {
+                btnBrowse_Click(sender, EventArgs.Empty);
+
+                // Enter音無効化
+                e.SuppressKeyPress = true;
+            }
+        }
+
         //集計開始ボタン
         private void btnExecuteImport_Click(object sender, EventArgs e) {
-            ExecuteImport();
+            string[] paths = txtFilePath.Text.Split(';');
+
+            try {
+                this.Cursor = Cursors.WaitCursor;
+                btnExecuteImport.Enabled = false;
+
+                _importService.ExecuteImport(paths);
+
+                txtFilePath.Clear();
+                lblFileName_Hide();
+            } catch (Exception ex) {
+                MessageManager.ShowError($"データベース登録中にエラーが発生しました。{Environment.NewLine}{ex.Message}");
+            } finally {
+                this.Cursor = Cursors.Default;
+                btnExecuteImport.Enabled = true;
+                btnExecuteImport.TabStop = true;
+            }
         }
     }
 }

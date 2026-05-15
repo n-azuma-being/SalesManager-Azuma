@@ -2,48 +2,53 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SQLite;
 using System.IO;
 using System.Linq;
-using System.Windows.Forms;
 
 namespace SalesManager.Services {
+    /// <summary>
+    /// データ取込画面の内部処理を行うクラス
+    /// </summary>
     public class ImportService {
 
         /// <summary>
         /// 全テーブルの初期化
         /// </summary>
         public void InitializeDatabase() {
-            string sql = @"
-                CREATE TABLE IF NOT EXISTS categories (
-                    category_id TEXT PRIMARY KEY,
-                    category_name TEXT UNIQUE
-                );
-                CREATE TABLE IF NOT EXISTS products (
-                    product_id INTEGER PRIMARY KEY,
-                    product_name TEXT,
-                    unit_price REAL,
-                    category_id TEXT
-                );
-                CREATE TABLE IF NOT EXISTS stocks (
-                    product_id INTEGER PRIMARY KEY,
-                    stock INTEGER,
-                    updated_at TEXT
-                );
-                CREATE TABLE IF NOT EXISTS stores (
-                    store_id INTEGER PRIMARY KEY,
-                    store_name TEXT
-                );
-                CREATE TABLE IF NOT EXISTS sales (
-                    sale_id TEXT PRIMARY KEY,
-                    sale_date TEXT,
-                    store_id INTEGER,
-                    product_id INTEGER,
-                    unit_price REAL,
-                    quantity INTEGER
-                );";
-            DbManager.ExecuteNonQuery(sql);
+            Repository.CreateTable();
         }
+
+        /// <summary>
+        /// ファイル入力
+        /// </summary>
+        public void ExecuteImport(string[] paths) {
+            //存在チェック
+            string productPath = paths.FirstOrDefault(p => Path.GetFileName(p).ToLower().Contains("products"));
+            string inventoryPath = paths.FirstOrDefault(p => Path.GetFileName(p).ToLower().Contains("inventory"));
+            string salesPath = paths.FirstOrDefault(p => Path.GetFileName(p).ToLower().Contains("sales"));
+
+            List<string> missingFiles = new List<string>();
+            if (string.IsNullOrEmpty(productPath)) missingFiles.Add("・商品マスター (products.csv)");
+            if (string.IsNullOrEmpty(inventoryPath)) missingFiles.Add("・在庫データ (inventory.csv)");
+            if (string.IsNullOrEmpty(salesPath)) missingFiles.Add("・売上データ (sales_YYYYMMDD.csv)");
+
+            if (missingFiles.Count > 0) {
+                MessageManager.ShowInfo($"以下の必要なファイルが選択されていません。{Environment.NewLine}" + string.Join($"{Environment.NewLine}", missingFiles));
+                return; // 処理を中断
+            }
+
+            // DB整合性のために順番を固定して実行
+            string storePath = paths.FirstOrDefault(p => Path.GetFileName(p).ToLower().Contains("store"));
+            if (storePath != null) ImportStores(storePath);
+
+            // 商品 -> 在庫 -> 売上 の順
+            ImportProducts(productPath);
+            ImportInventory(inventoryPath);
+            ImportSales(salesPath);
+
+            MessageManager.ShowInfo("売上集計が完了しました。");
+        }
+
 
         /// <summary>
         /// インポートの一括実行
@@ -59,22 +64,16 @@ namespace SalesManager.Services {
             try {
                 ImportProducts(productPath);
             } catch (Exception ex) {
-                MessageBox.Show($"商品データの登録に失敗しました: {ex.Message}");
+                MessageManager.ShowError($"商品データの登録に失敗しました。{Environment.NewLine}{ex.Message}");
             }
 
             //在庫情報のインポート
             try {
                 ImportInventory(inventoryPath);
             } catch (Exception ex) {
-                MessageBox.Show($"在庫データの登録に失敗しました: {ex.Message}");
+                MessageManager.ShowError($"在庫データの登録に失敗しました。{Environment.NewLine}{ex.Message}");
             }
 
-            //売上情報のインポート
-            try {
-                ImportSales(salesPath);
-            } catch (Exception ex) {
-                MessageBox.Show($"売上データの登録に失敗しました: {ex.Message}");
-            }
         }
 
         /// <summary>
@@ -83,7 +82,7 @@ namespace SalesManager.Services {
         public bool ValidateCsvData(string productPath, string inventoryPath, string salesPath, string storePath) {
             // 商品: ID, 名前, 単価, カテゴリ
             if (!CheckColumns(productPath, 4)) return false;
-            // 在庫: 店舗ID, 商品ID, 出庫数
+            // 在庫: 店舗ID, 商品ID, 在庫数
             if (!CheckColumns(inventoryPath, 3)) return false;
             // 売上: 日付, 店舗ID, 商品ID, 数量
             if (!CheckColumns(salesPath, 4)) return false;
@@ -114,8 +113,7 @@ namespace SalesManager.Services {
                 categories[row["category_name"].ToString()] = row["category_id"].ToString();
             }
 
-            DbManager.ExecuteBatch(cmd =>
-            {
+            DbManager.ExecuteBatch(cmd => {
                 for (int i = 1; i < lines.Length; i++) {
                     var cols = lines[i].Split(',');
                     if (cols.Length < 4) continue;
@@ -160,46 +158,44 @@ namespace SalesManager.Services {
             try {
                 lines = File.ReadAllLines(csvPath);
             } catch (Exception ex) {
-                MessageManager.ShowError($"CSVファイルの読み込みに失敗しました : {ex.Message}");
+                MessageManager.ShowError($"CSV読み込み失敗: {ex.Message}");
                 return;
             }
 
-            string today = DateTime.Now.ToString("yyyy-MM-dd");
+            string today = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            var stockTotals = new Dictionary<int, int>();
 
-            var currentStocks = new Dictionary<int, int>();//前回在庫
-            try{
-                var dt = DbManager.ExecuteQuery("SELECT product_id, stock FROM stocks");
+            for (int i = 1; i < lines.Length; i++) {
+                var cols = lines[i].Split(',');
+                if (cols.Length < 3) continue;
+                int productId = int.Parse(cols[1]);
+                int stock = int.Parse(cols[2]);
 
-                foreach (DataRow row in dt.Rows) {
-                    currentStocks[Convert.ToInt32(row["product_id"])] = Convert.ToInt32(row["stock"]);
+                if (stockTotals.ContainsKey(productId)) stockTotals[productId] += stock;
+                else stockTotals[productId] = stock;
+            }
+
+            //csv再読み込み時の上書きに対応するため、在庫数から全売上データの販売数を引くことにする
+            var dtSales = DbManager.ExecuteQuery("SELECT product_id, SUM(quantity) as total_qty FROM sales GROUP BY product_id");
+            foreach (DataRow row in dtSales.Rows) {
+                int productId = Convert.ToInt32(row["product_id"]);
+                int soldQty = Convert.ToInt32(row["total_qty"]);
+
+                if (stockTotals.ContainsKey(productId)) {
+                    stockTotals[productId] -= soldQty;
+                } else {
+                    stockTotals[productId] = -soldQty;
                 }
-            } catch (Exception ex) {
-                MessageManager.ShowError($"在庫データの取得に失敗しました : {ex.Message}");
             }
 
             DbManager.ExecuteBatch(cmd => {
-                for (int i = 1; i < lines.Length; i++) {
-                    var cols = lines[i].Split(',');
-                    if (cols.Length < 3) continue;
-
-                    int pId = int.Parse(cols[1]);
-                    int change = int.Parse(cols[2]);
-
-                    int current = currentStocks.ContainsKey(pId) ? currentStocks[pId] : 0;
-                    int updated = current - change;
-                    currentStocks[pId] = updated;
-
+                foreach (var item in stockTotals) {
                     cmd.CommandText = "INSERT OR REPLACE INTO stocks VALUES (@pid, @stock, @date)";
                     cmd.Parameters.Clear();
-                    cmd.Parameters.AddWithValue("@pid", pId);
-                    cmd.Parameters.AddWithValue("@stock", updated);
+                    cmd.Parameters.AddWithValue("@pid", item.Key);
+                    cmd.Parameters.AddWithValue("@stock", item.Value);
                     cmd.Parameters.AddWithValue("@date", today);
-
-                    try{
-                        cmd.ExecuteNonQuery();
-                    } catch (Exception ex) {
-                        MessageManager.ShowError($"在庫データの登録に失敗しました : {ex.Message}");
-                    }
+                    cmd.ExecuteNonQuery();
                 }
             });
         }
@@ -211,7 +207,6 @@ namespace SalesManager.Services {
             var lines = File.ReadAllLines(csvPath);
             var sequenceMap = new Dictionary<string, int>();
 
-            // 単価マスタを読み込み
             var priceMap = new Dictionary<int, decimal>();
             var dt = DbManager.ExecuteQuery("SELECT product_id, unit_price FROM products");
             foreach (DataRow row in dt.Rows) {
@@ -232,7 +227,7 @@ namespace SalesManager.Services {
 
                     decimal price = priceMap.ContainsKey(pId) ? priceMap[pId] : 0;
 
-                    cmd.CommandText = "INSERT INTO sales VALUES (@sid, @date, @stid, @pid, @price, @qty)";
+                    cmd.CommandText = "INSERT OR REPLACE INTO sales VALUES (@sid, @date, @stid, @pid, @price, @qty)";
                     cmd.Parameters.Clear();
                     cmd.Parameters.AddWithValue("@sid", saleId);
                     cmd.Parameters.AddWithValue("@date", sDate);
